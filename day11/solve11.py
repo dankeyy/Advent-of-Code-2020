@@ -34,12 +34,8 @@ def griddy(grid, tolerance=4):
 
 
 def stablize(grid):
-    prev = grid
-    while (new_grid := griddy(prev)) != prev: prev = new_grid
+    while (new_grid := griddy(grid)) != grid: grid = new_grid
     return new_grid
-
-idk = lambda grid: (griddy(grid) for _ in count())
-stablize = lambda grid: next(g for g in takewhile(lambda grid: grid == idk(grid), idk(grid)))
 
 count_occupied = lambda grid: sum(row.count(SEATED) for row in grid)
 
