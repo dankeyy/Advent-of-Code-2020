@@ -6,23 +6,23 @@ opr = {'+': add, '*': mul}
 evaluate = lambda x, n1, n2: opr[x](n1, n2)
 
 def parse_calc(txt):
-    for i in re.finditer(r'((\d+) (\W) (\d+))', txt):
-        _, n1, x, n2 = i.groups()
+    for i in re.finditer(r"((\d+) (\W) (\d+)|(\()(\d+)(\)))", txt):
+        _, n1, x, n2 = i.groups() # Ns are either braces or numbers
         indexes = i.span()
 
-        yield indexes, (x, *map( int, (n1, n2) ) )
-
-def parse_brackets(txt):
-    for i in re.finditer(r'\(\d+\)', txt):
-        yield *i.span(), i.string[1:-1]
+        if x.isnumeric(): yield indexes, i.string[1:-1]
+        else: yield indexes, (x, *map( int, (n1, n2) ) )
 
 def main(txt):
     # clone = deepcopy(txt)
-    for indexes, expr in parse_calc(txt):
+    for indexes, innerexpr in parse_calc(txt):
         start, end = indexes
 
-        if txt[start - 1] == '(':
-            txt = txt[:start] + str(evaluate(*expr)) + txt[end:]
+        if innerexpr.isnumeric():
+            txt = txt[:start] + innerexpr + txt[end:]
+        else:
+            if txt[start - 1] == '(':
+                txt = txt[:start] + str(evaluate(*innerexpr)) + txt[end:]
             yield from main(txt)
 
     # for start, end, n in parse_brackets(txt):
