@@ -1,43 +1,54 @@
 from itertools import count
 
-def get_info(path='inp.txt'):
+
+def get_info(path='test.txt', p2=False):
     with open(path) as f:
-        lines = f.readlines()
+        timestamp, bids = f.readlines()
 
-    timestamp = int( lines[0] )
-    #buses = list( map( int, filter( lambda x: x != 'x', lines[1].split(',') ) ) )  #p1
+    buses = [
+        (int(bid), pts) if p2 else int(bid)
+            for pts, bid in enumerate(bids.split(',')) 
+                if bid.isnumeric()
+    ]
 
-    bids = lines[1].split(',')
-    buses = list( filter( lambda x: x != 'x', ( (int(bid), pts) if bid.isnumeric() else bid for pts, bid in enumerate(bids) ) ) ) # pts = required departure post timestamp
-
-    return timestamp, buses 
-
-
-def earliest_bus(info): #p1
-    timestamp, buses = info
-    bts = {} # busses with corresponding earliest timestamps
-
-    for b in buses:
-        tsrange = range(timestamp, timestamp + b)
-        for ts in tsrange:
-            if ts % b == 0:
-                bts[b] = ts
-
-    eb, ebts = min(bts.items(), key=lambda x: x[1]) #eb stands for earliest bus
-    return (ebts - timestamp) * eb
+    return int(timestamp), buses
 
 
-def earliest_timestamp(info):
-    timestamp, buses = info
+
+def p1(info):
+    earliest_timestamp, buses_ids = info
+    earliest_departure = earliest_id = None # earliest departure timestamp & earliest bus id
+
+    for bid in buses_ids:
+        for timestamp in range(earliest_timestamp, earliest_timestamp + bid):
+            if not timestamp % bid:
+
+                if earliest_departure is None or timestamp < earliest_departure: 
+                    earliest_departure = timestamp
+                    earliest_id = bid
+
+                break
+
+    return (earliest_departure - earliest_timestamp) * earliest_id
+
+
+
+def p2(info):
+    timestamp = 0
+    _, buses = info
     step = 1
 
-    for bid, pts in buses: 
-        timestamp = next(c for c in count(timestamp, step) if (pts + c) % bid == 0)
+    for bid, pts in buses:
+        timestamp = next(c for c in count(timestamp, step) if not (pts + c) % bid)
         step *= bid
 
     return timestamp
 
 
+
 if __name__ == "__main__":
-    #print( earliest_bus( get_info() ) ) # part 1
-    print(earliest_timestamp( get_info()))
+    print(
+        p1(get_info()),
+        p2(get_info(path='inp.txt', p2=True)),
+        sep='\n'
+    )
